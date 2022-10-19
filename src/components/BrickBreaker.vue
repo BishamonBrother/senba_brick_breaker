@@ -3,6 +3,13 @@
     <canvas ref="brickBreakerCanvas" width="940" height="540">
     </canvas>
   </div>
+  <div class="volume">
+    <img src="@/assets/images/volume.png" width="30" height="30">
+    <input type="range" ref="volumeSlider" max="1" min="0" step = "0.01" v-bind:value="volumeValue" v-on:change="onVolumeChange">
+  </div>
+  <div>
+    <p>Enterキーを押すとスタートするのじゃ！</p>
+  </div>
 </template>
 
 <script>
@@ -50,23 +57,37 @@ export default {
       ikkitsuukan: false,
       isReach: false,
       isGameCleared: false,
+      isGameOver: false,
+      volumeValue: 0.3
     }
   },
 
   mounted() {
     this.x = this.canvas.width / 2;
     this.y = this.canvas.height - 30;
-    this.interval = setInterval(this.draw, 10);
-    this.breakSe.forEach(se => se.volume = 0.1);
-    this.gameOverSe.volume = 0.1;
-    this.ikkitsuukanSe.volume = 0.1;
-    this.reachSe.volume = 0.1;
-    this.clearSe.forEach(se => se.volume = 0.1);
+    
+    /* ローカルストレージからボリュームの値を取得する。 */
+    let storageVolume = localStorage.getItem("volumeValue");
+    if (storageVolume !== 0) {
+      this.volumeValue = storageVolume;
+    }
+
+    this.breakSe.forEach(se => se.volume = this.volumeValue);
+    this.gameOverSe.volume = this.volumeValue;
+    this.gameOverSe.onended = function () {
+      alert("もう一回チャレンジするのじゃ！");
+      document.location.reload();
+      clearInterval(this.interval);
+    }
+    this.ikkitsuukanSe.volume = this.volumeValue;
+    this.reachSe.volume = this.volumeValue;
+    this.clearSe.forEach(se => se.volume = this.volumeValue);
     this.clearSe.forEach(se => se.onended = function () {
       alert("お見事なのじゃ！");
       document.location.reload();
       clearInterval(this.interval);
     });
+
     this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
@@ -79,6 +100,11 @@ export default {
     }
 
     this.bgImage.src = require('@/assets/images/background.jpg');
+
+    this.drawBgImage();
+    this.drawBall();
+    this.drawPaddle();
+    this.drawBricks();
   },
 
   computed: {
@@ -88,7 +114,7 @@ export default {
 
     ctx () {
       return this.canvas.getContext("2d");
-    }
+    },
   },
 
   methods: {
@@ -140,11 +166,9 @@ export default {
           }
         } else {
           /* 下に触れるとゲームオーバーになる処理 */
-          if (!this.isGameCleared) {
+          if (!this.isGameCleared && !this.isGameOver) {
+            this.isGameOver = true;
             this.gameOverSe.play();
-            alert("ゲームオーバーなのじゃ！");
-            document.location.reload();
-            clearInterval(this.interval);
           }
         }
       }
@@ -236,6 +260,8 @@ export default {
         this.rightPressed = true;
       } else if (e.key === "Left" || e.key === "ArrowLeft") {
         this.leftPressed = true;
+      } else if (e.key === "Enter") {
+        this.interval = setInterval(this.draw, 10);
       }
     },
 
@@ -246,6 +272,19 @@ export default {
         this.leftPressed = false;
       }
     },
+
+    /* ボリュームスライダーが変更されたときの処理 */
+    onVolumeChange: function () {
+      /* リロードしてもボリュームを保持するためローカルストレージに入れる */
+      this.volumeValue = this.$refs["volumeSlider"].value;
+      localStorage.setItem("volumeValue", this.volumeValue);
+
+      this.breakSe.forEach(se => se.volume = this.volumeValue);
+      this.gameOverSe.volume = this.volumeValue;
+      this.ikkitsuukanSe.volume = this.volumeValue;
+      this.reachSe.volume = this.volumeValue;
+      this.clearSe.forEach(se => se.volume = this.volumeValue);
+    },
   }
 }
 </script>
@@ -254,5 +293,10 @@ export default {
 <style scoped>
 canvas {
   background-color: pink;
+}
+.volume {
+  display: flex;
+  margin-top: 30px;
+  margin-left: 30px;
 }
 </style>
