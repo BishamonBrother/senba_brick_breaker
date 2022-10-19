@@ -9,15 +9,13 @@
   </div>
   <div>
     <p>Enterキーを押すとスタートするのじゃ！</p>
+    <p>左右のカーソルキーで操作するのじゃ！</p>
   </div>
 </template>
 
 <script>
 export default {
   name: 'BrickBreaker',
-  // props: {
-  //   msg: String
-  // }
 
   data () {
     return {
