@@ -37,8 +37,6 @@ export default {
         new Audio(require('@/assets/sounds/ron.wav')),
         new Audio(require('@/assets/sounds/tsumo.wav')),
       ],
-      paddleHeight: 10,
-      paddleWidth: 100,
       paddleX: 0,
       rightPressed: false,
       leftPressed: false,
@@ -56,13 +54,17 @@ export default {
       isReach: false,
       isGameCleared: false,
       isGameOver: false,
-      volumeValue: 0.3
+      volumeValue: 0.3,
+      tenbouImage: new Image(),
     }
   },
 
   mounted() {
     this.x = this.canvas.width / 2;
     this.y = this.canvas.height - 30;
+
+    this.bgImage.src = require('@/assets/images/background.jpg');
+    this.tenbouImage.src = require('@/assets/images/b_8_2.gif');
     
     /* ローカルストレージからボリュームの値を取得する。 */
     let storageVolume = localStorage.getItem("volumeValue");
@@ -86,7 +88,7 @@ export default {
       clearInterval(this.interval);
     });
 
-    this.paddleX = (this.canvas.width - this.paddleWidth) / 2;
+    this.paddleX = (this.canvas.width - this.tenbouImage.width) / 2;
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
 
@@ -97,11 +99,9 @@ export default {
       }
     }
 
-    this.bgImage.src = require('@/assets/images/background.jpg');
-
     this.drawBgImage();
     this.drawBall();
-    this.drawPaddle();
+    this.drawTenbouImage();
     this.drawBricks();
   },
 
@@ -128,7 +128,7 @@ export default {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
       this.drawBgImage();
       this.drawBall();
-      this.drawPaddle();
+      this.drawTenbouImage();
       this.drawBricks();
       this.collisionDetection();
 
@@ -144,16 +144,16 @@ export default {
       if (this.y + this.dy < this.ballRadius) {
         this.dy = -this.dy;
       } else if (this.y + this.dy > this.canvas.height - this.ballRadius) {
-        if (this.x > this.paddleX && this.x < this.paddleX + this.paddleWidth) {
+        if (this.x > this.paddleX && this.x < this.paddleX + this.tenbouImage.width) {
           /* パドルで跳ね返る処理
              中心付近に当たると横軸の移動が緩くなる。
              さらに中心付近に当たると一気通貫モードになる。 */
-          if (this.x > this.paddleX + this.paddleWidth * 8 / 17 && this.x < this.paddleX + this.paddleWidth * 9 / 17) {
+          if (this.x > this.paddleX + this.tenbouImage.width * 8 / 17 && this.x < this.paddleX + this.tenbouImage.width * 9 / 17) {
             this.dy = this.dy > 0 ? -5 : 5;
             this.dx = this.dx > 0 ? 1 : -1;
             this.ikkitsuukan = true;
             this.ikkitsuukanSe.play();
-          } else if (this.x > this.paddleX + this.paddleWidth / 4 && this.x < this.paddleX + this.paddleWidth * 3 / 4) {
+          } else if (this.x > this.paddleX + this.tenbouImage.width / 4 && this.x < this.paddleX + this.tenbouImage.width * 3 / 4) {
             this.dy = this.dy > 0 ? -3 : 3;
             this.dx = this.dx > 0 ? 1 : -1;
             this.ikkitsuukan = false;
@@ -172,7 +172,7 @@ export default {
       }
 
       if (this.rightPressed) {
-        this.paddleX = Math.min(this.paddleX + 5, this.canvas.width - this.paddleWidth);
+        this.paddleX = Math.min(this.paddleX + 5, this.canvas.width - this.tenbouImage.width);
       } else if (this.leftPressed) {
         this.paddleX = Math.max(this.paddleX - 5, 0);
       }
@@ -180,14 +180,6 @@ export default {
 
     getRandomInterger: function (max) {
       return Math.floor(Math.random() * max);
-    },
-
-    drawPaddle: function () {
-      this.ctx.beginPath();
-      this.ctx.rect(this.paddleX, this.canvas.height - this.paddleHeight, this.paddleWidth, this.paddleHeight);
-      this.ctx.fillStyle = "#0095DD";
-      this.ctx.fill();
-      this.ctx.closePath();
     },
 
     drawBricks: function () {
@@ -213,6 +205,10 @@ export default {
 
     drawBgImage: function () {
       this.ctx.drawImage(this.bgImage, 30, 30, 880, 293);
+    },
+
+    drawTenbouImage: function () {
+      this.ctx.drawImage(this.tenbouImage, this.paddleX, this.canvas.height - this.tenbouImage.height, this.tenbouImage.width, this.tenbouImage.height);
     },
 
     collisionDetection: function() {
