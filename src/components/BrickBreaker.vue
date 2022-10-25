@@ -1,6 +1,6 @@
 <template>
   <div class="brickBreaker" align="center">
-    <canvas ref="brickBreakerCanvas" width="940" height="540">
+    <canvas ref="brickBreakerCanvas" v-bind:width="canvasWidth" height="540">
     </canvas>
   </div>
   <div class="volume">
@@ -28,12 +28,17 @@ export default {
         new Audio(require('@/assets/sounds/pon.wav')),
         new Audio(require('@/assets/sounds/chi.wav')),
         new Audio(require('@/assets/sounds/kan.wav')),
+        new Audio(require('@/assets/sounds/SE_CHII.wav')),
+        new Audio(require('@/assets/sounds/SE_DA.wav')),
+        new Audio(require('@/assets/sounds/SE_KAN.wav')),
+        new Audio(require('@/assets/sounds/SE_KIRA.wav')),
+        new Audio(require('@/assets/sounds/SE_NUKI.wav')),
+        new Audio(require('@/assets/sounds/SE_SHA.wav')),
       ],
       gameOverSe: new Audio(require('@/assets/sounds/SE_YAKU.wav')),
       ikkitsuukanSe: new Audio(require('@/assets/sounds/SE_DORA.wav')),
       reachSe: new Audio(require('@/assets/sounds/reach.wav')),
       clearSe: [
-        new Audio(require('@/assets/sounds/SE_AGARI.wav')),
         new Audio(require('@/assets/sounds/ron.wav')),
         new Audio(require('@/assets/sounds/tsumo.wav')),
       ],
@@ -41,8 +46,8 @@ export default {
       rightPressed: false,
       leftPressed: false,
       interval: 0,
-      brickRowCount: 10,
-      brickColumnCount: 11,
+      brickRowCount: 5,
+      brickColumnCount: 14,
       brickWidth: 80,
       brickHeight: 30,
       brickPadding: 0.1,
@@ -55,15 +60,94 @@ export default {
       isGameCleared: false,
       isGameOver: false,
       volumeValue: 0.3,
+      canvasWidth: 960,
+      playing: false,
       tenbouImage: new Image(),
+      threeColorRuns: [
+        '/images/p_ms1_1.gif',
+        '/images/p_ms2_1.gif',
+        '/images/p_ms3_1.gif',
+        '/images/p_ss1_1.gif',
+        '/images/p_ss2_1.gif',
+        '/images/p_ss3_1.gif',
+        '/images/p_ps1_1.gif',
+        '/images/p_ps2_1.gif',
+        '/images/p_ps3_1.gif',
+        '/images/p_ms7_1.gif',
+        '/images/p_ms8_1.gif',
+        '/images/p_ms9_1.gif',
+        '/images/p_ms9_1.gif',
+        '/images/p_ms9_1.gif',
+      ],
+      thirteenOrphans: [
+        '/images/p_ms1_1.gif',
+        '/images/p_ms9_1.gif',
+        '/images/p_ss1_1.gif',
+        '/images/p_ss9_1.gif',
+        '/images/p_ps1_1.gif',
+        '/images/p_ps9_1.gif',
+        '/images/p_ji_e_1.gif',
+        '/images/p_ji_s_1.gif',
+        '/images/p_ji_w_1.gif',
+        '/images/p_ji_n_1.gif',
+        '/images/p_no_1.gif',
+        '/images/p_ji_h_1.gif',
+        '/images/p_ji_c_1.gif',
+        '/images/p_ji_c_1.gif',
+      ],
+      allGreens: [
+        '/images/p_ss2_1.gif',
+        '/images/p_ss2_1.gif',
+        '/images/p_ss3_1.gif',
+        '/images/p_ss3_1.gif',
+        '/images/p_ss4_1.gif',
+        '/images/p_ss4_1.gif',
+        '/images/p_ss6_1.gif',
+        '/images/p_ss6_1.gif',
+        '/images/p_ss8_1.gif',
+        '/images/p_ss8_1.gif',
+        '/images/p_ss8_1.gif',
+        '/images/p_ji_h_1.gif',
+        '/images/p_ji_h_1.gif',
+        '/images/p_ji_h_1.gif',
+      ],
+      bigDragons: [
+        '/images/p_no_1.gif',
+        '/images/p_no_1.gif',
+        '/images/p_no_1.gif',
+        '/images/p_ji_h_1.gif',
+        '/images/p_ji_h_1.gif',
+        '/images/p_ji_h_1.gif',
+        '/images/p_ji_c_1.gif',
+        '/images/p_ji_c_1.gif',
+        '/images/p_ji_c_1.gif',
+        '/images/p_ji_e_1.gif',
+        '/images/p_ji_e_1.gif',
+        '/images/p_ji_e_1.gif',
+        '/images/p_ji_s_1.gif',
+        '/images/p_ji_s_1.gif',
+      ],
+      nineGates: [
+        '/images/p_ms1_1.gif',
+        '/images/p_ms1_1.gif',
+        '/images/p_ms1_1.gif',
+        '/images/p_ms1_1.gif',
+        '/images/p_ms2_1.gif',
+        '/images/p_ms3_1.gif',
+        '/images/p_ms4_1.gif',
+        '/images/p_ms5_1.gif',
+        '/images/p_ms6_1.gif',
+        '/images/p_ms7_1.gif',
+        '/images/p_ms8_1.gif',
+        '/images/p_ms9_1.gif',
+        '/images/p_ms9_1.gif',
+        '/images/p_ms9_1.gif',
+      ],
     }
   },
 
   mounted() {
-    this.x = this.canvas.width / 2;
-    this.y = this.canvas.height - 30;
-
-    this.bgImage.src = require('@/assets/images/background.jpg');
+    this.bgImage.src = require('@/assets/images/background.png');
     this.tenbouImage.src = require('@/assets/images/b_8_2.gif');
     
     /* ローカルストレージからボリュームの値を取得する。 */
@@ -88,21 +172,27 @@ export default {
       clearInterval(this.interval);
     });
 
-    this.paddleX = (this.canvas.width - this.tenbouImage.width) / 2;
     document.addEventListener('keydown', this.onKeyDown);
     document.addEventListener('keyup', this.onKeyUp);
 
-    for (let c = 0; c < this.brickColumnCount; c++) {
-      this.bricks[c] = [];
-      for (let r = 0; r < this.brickRowCount; r++) {
-        this.bricks[c][r] = {x: 0, y: 0, exists: true};
+    let row = [this.nineGates, this.bigDragons, this.allGreens, this.thirteenOrphans, this.threeColorRuns];
+    for (let r = 0; r < this.brickRowCount; r++) {
+      this.bricks[r] = [];
+      for (let c = 0; c < this.brickColumnCount; c++) {
+        this.bricks[r][c] = {x: 0, y: 0, exists: true, image: new Image()};
+        this.bricks[r][c].image.src = (row[r][c]);
       }
     }
+    this.brickWidth = this.bricks[0][0].image.width;
+    this.brickHeight = this.bricks[0][0].image.height;
 
-    this.drawBgImage();
-    this.drawBall();
-    this.drawTenbouImage();
-    this.drawBricks();
+    this.canvasWidth = this.bricks[0][0].image.width * this.brickColumnCount + 60;
+
+    this.x = this.canvasWidth / 2;
+    this.y = this.canvas.height - 30;
+    this.paddleX = (this.canvasWidth - this.tenbouImage.width) / 2;
+
+    this.interval = setInterval(this.draw, 10);
   },
 
   computed: {
@@ -132,6 +222,10 @@ export default {
       this.drawBricks();
       this.collisionDetection();
 
+      if (!this.playing) {
+        return;
+      }
+
       this.x += this.dx;
       this.y += this.dy;
 
@@ -152,7 +246,9 @@ export default {
             this.dy = this.dy > 0 ? -5 : 5;
             this.dx = this.dx > 0 ? 1 : -1;
             this.ikkitsuukan = true;
-            this.ikkitsuukanSe.play();
+            if (!this.isGameOver) {
+              this.ikkitsuukanSe.play();
+            }
           } else if (this.x > this.paddleX + this.tenbouImage.width / 4 && this.x < this.paddleX + this.tenbouImage.width * 3 / 4) {
             this.dy = this.dy > 0 ? -3 : 3;
             this.dx = this.dx > 0 ? 1 : -1;
@@ -183,28 +279,21 @@ export default {
     },
 
     drawBricks: function () {
-      for (let c = 0; c < this.brickColumnCount; c++) {
-        for (let r = 0; r < this.brickRowCount; r++) {
-          if (this.bricks[c][r].exists) {
+      for (let r = 0; r < this.brickRowCount; r++) {
+        for (let c = 0; c < this.brickColumnCount; c++) {
+          if (this.bricks[r][c].exists) {
             const brickX = c * (this.brickWidth + this.brickPadding) + this.brickOffsetLeft;
             const brickY = r * (this.brickHeight + this.brickPadding) + this.brickOffsetTop;
-            this.bricks[c][r].x = brickX;
-            this.bricks[c][r].y = brickY;
-            this.ctx.beginPath();
-            this.ctx.rect(brickX, brickY, this.brickWidth, this.brickHeight);
-  
-            let red = 255 - 30 * c;
-            let green = 255 - 30 * r;
-            this.ctx.fillStyle = 'rgb(' + Math.floor(red) + ', ' + Math.floor(green) + ', 0)';
-            this.ctx.fill();
-            this.ctx.closePath();
+            this.bricks[r][c].x = brickX;
+            this.bricks[r][c].y = brickY;
+            this.ctx.drawImage(this.bricks[r][c].image, brickX, brickY, this.brickWidth, this.brickHeight);
           }
         }
       }
     },
 
     drawBgImage: function () {
-      this.ctx.drawImage(this.bgImage, 30, 30, 880, 293);
+      this.ctx.drawImage(this.bgImage, 30, 30);
     },
 
     drawTenbouImage: function () {
@@ -216,7 +305,7 @@ export default {
       let numBricks = 0;
       for (let c = 0; c < this.brickColumnCount; c++) {
         for (let r = 0; r < this.brickRowCount; r++) {
-          const b = this.bricks[c][r];
+          const b = this.bricks[r][c];
           if (b.exists) {
             numBricks++;
             isAllDeleted = false;
@@ -255,7 +344,7 @@ export default {
       } else if (e.key === "Left" || e.key === "ArrowLeft") {
         this.leftPressed = true;
       } else if (e.key === "Enter") {
-        this.interval = setInterval(this.draw, 10);
+        this.playing = true;
       }
     },
 
