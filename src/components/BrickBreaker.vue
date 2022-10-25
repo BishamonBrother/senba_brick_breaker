@@ -55,6 +55,8 @@ export default {
       brickOffsetLeft: 30,
       bricks: [],
       bgImage: new Image(),
+      mosaicBgImage: 0,
+      mosaicSize: 30,
       ikkitsuukan: false,
       isReach: false,
       isGameCleared: false,
@@ -148,6 +150,9 @@ export default {
 
   mounted() {
     this.bgImage.src = require('@/assets/images/background.png');
+    this.bgImage.onload = function () {
+      this.loaded = true;
+    }
     this.tenbouImage.src = require('@/assets/images/b_8_2.gif');
     
     /* ローカルストレージからボリュームの値を取得する。 */
@@ -293,7 +298,36 @@ export default {
     },
 
     drawBgImage: function () {
+      if (!this.bgImage.loaded) {
+        return;
+      }
+      if (this.mosaicBgImage === 0) {
+        this.createMosaicBgImage();
+      }
+      if (this.isGameCleared) {
+        this.ctx.drawImage(this.bgImage, 30, 30);
+      } else {
+        this.ctx.putImageData(this.mosaicBgImage, 30, 30);
+      }
+    },
+
+    createMosaicBgImage: function () {
+      /* 元の画像を描写 -> mosaicSize単位でモザイクをかけたものをcanvasに描写 -> 元の画像サイズ分モザイクをかけた範囲をgetImageDataで切り取る */
       this.ctx.drawImage(this.bgImage, 30, 30);
+
+      let w;
+      let h;
+      for (w = 0; w < this.bgImage.width; w += this.mosaicSize) {
+        for (h = 0; h < this.bgImage.height; h += this.mosaicSize) {
+          let size = this.mosaicSize;
+          if (h + this.mosaicSize > this.bgImage.height) {
+            size = this.bgImage.height - h;
+          }
+          this.blurColor(30 + w, 30 + h, this.mosaicSize, size);
+        }
+      }
+
+      this.mosaicBgImage = this.ctx.getImageData(30, 30, this.bgImage.width, this.bgImage.height);
     },
 
     drawTenbouImage: function () {
@@ -336,6 +370,37 @@ export default {
         this.isGameCleared = true;
         this.clearSe[this.getRandomInterger(this.clearSe.length)].play();
       }
+    },
+
+    blurColor: function (x, y, w, h) {
+      let r, g, b
+      r = g = b = 0
+      
+      let src = this.ctx.getImageData(x, y, w, h);
+      let dst = this.ctx.createImageData(w, h)
+
+      for (let i = 0; i < src.data.length; i += 4) {
+          r += src.data[i]
+          g += src.data[i + 1]
+          b += src.data[i + 2]
+      }
+
+      r /= src.data.length / 4
+      g /= src.data.length / 4
+      b /= src.data.length / 4
+
+      r = Math.ceil(r)
+      g = Math.ceil(g)
+      b = Math.ceil(b)
+
+      for (let i = 0; i < src.data.length; i += 4) {
+          dst.data[i] = r
+          dst.data[i + 1] = g
+          dst.data[i + 2] = b
+          dst.data[i + 3] = 255
+      }
+
+      this.ctx.putImageData(dst, x, y)
     },
 
     onKeyDown: function (e) {
