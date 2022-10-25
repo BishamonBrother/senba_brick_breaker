@@ -154,6 +154,9 @@ export default {
       this.loaded = true;
     }
     this.tenbouImage.src = require('@/assets/images/b_8_2.gif');
+    this.tenbouImage.onload = function () {
+      this.loaded = true;
+    }
     
     /* ローカルストレージからボリュームの値を取得する。 */
     let storageVolume = localStorage.getItem("volumeValue");
@@ -186,6 +189,9 @@ export default {
       for (let c = 0; c < this.brickColumnCount; c++) {
         this.bricks[r][c] = {x: 0, y: 0, exists: true, image: new Image()};
         this.bricks[r][c].image.src = (row[r][c]);
+        this.bricks[r][c].image.onload = function () {
+          this.loaded = true;
+        }
       }
     }
     this.brickWidth = this.bricks[0][0].image.width;
@@ -291,7 +297,9 @@ export default {
             const brickY = r * (this.brickHeight + this.brickPadding) + this.brickOffsetTop;
             this.bricks[r][c].x = brickX;
             this.bricks[r][c].y = brickY;
-            this.ctx.drawImage(this.bricks[r][c].image, brickX, brickY, this.brickWidth, this.brickHeight);
+            if (this.bricks[r][c].image.loaded) {
+              this.ctx.drawImage(this.bricks[r][c].image, brickX, brickY, this.brickWidth, this.brickHeight);
+            }
           }
         }
       }
@@ -331,7 +339,9 @@ export default {
     },
 
     drawTenbouImage: function () {
-      this.ctx.drawImage(this.tenbouImage, this.paddleX, this.canvas.height - this.tenbouImage.height, this.tenbouImage.width, this.tenbouImage.height);
+      if (this.tenbouImage.loaded) {
+        this.ctx.drawImage(this.tenbouImage, this.paddleX, this.canvas.height - this.tenbouImage.height, this.tenbouImage.width, this.tenbouImage.height);
+      }
     },
 
     collisionDetection: function() {
