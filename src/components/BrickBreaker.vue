@@ -3,9 +3,8 @@
     <canvas ref="brickBreakerCanvas" v-bind:width="canvasWidth" height="540">
     </canvas>
   </div>
-  <div class="volume">
-    <img src="@/assets/images/volume.png" width="30" height="30">
-    <input type="range" ref="volumeSlider" max="1" min="0" step = "0.01" v-bind:value="volumeValue" v-on:change="onVolumeChange">
+  <div class="volumeSlider">
+    <VolumeSlider initialVolume="0.3" @vlomeChanged="onVolumeChanged"/>
   </div>
   <div>
     <p>Enterキーを押すとスタートするのじゃ！</p>
@@ -14,8 +13,14 @@
 </template>
 
 <script>
+import VolumeSlider from "./VolumeSlider.vue"
+
 export default {
   name: 'BrickBreaker',
+
+  components: {
+    VolumeSlider
+  },
 
   data () {
     return {
@@ -61,7 +66,6 @@ export default {
       isReach: false,
       isGameCleared: false,
       isGameOver: false,
-      volumeValue: 0.3,
       canvasWidth: 960,
       playing: false,
       tenbouImage: new Image(),
@@ -157,23 +161,12 @@ export default {
     this.tenbouImage.onload = function () {
       this.loaded = true;
     }
-    
-    /* ローカルストレージからボリュームの値を取得する。 */
-    let storageVolume = localStorage.getItem("volumeValue");
-    if (storageVolume !== 0) {
-      this.volumeValue = storageVolume;
-    }
 
-    this.breakSe.forEach(se => se.volume = this.volumeValue);
-    this.gameOverSe.volume = this.volumeValue;
     this.gameOverSe.onended = function () {
       alert("もう一回チャレンジするのじゃ！");
       document.location.reload();
       clearInterval(this.interval);
     }
-    this.ikkitsuukanSe.volume = this.volumeValue;
-    this.reachSe.volume = this.volumeValue;
-    this.clearSe.forEach(se => se.volume = this.volumeValue);
     this.clearSe.forEach(se => se.onended = function () {
       alert("お見事なのじゃ！");
       document.location.reload();
@@ -431,17 +424,12 @@ export default {
       }
     },
 
-    /* ボリュームスライダーが変更されたときの処理 */
-    onVolumeChange: function () {
-      /* リロードしてもボリュームを保持するためローカルストレージに入れる */
-      this.volumeValue = this.$refs["volumeSlider"].value;
-      localStorage.setItem("volumeValue", this.volumeValue);
-
-      this.breakSe.forEach(se => se.volume = this.volumeValue);
-      this.gameOverSe.volume = this.volumeValue;
-      this.ikkitsuukanSe.volume = this.volumeValue;
-      this.reachSe.volume = this.volumeValue;
-      this.clearSe.forEach(se => se.volume = this.volumeValue);
+    onVolumeChanged: function (volume) {
+      this.breakSe.forEach(se => se.volume = volume);
+      this.gameOverSe.volume = volume;
+      this.ikkitsuukanSe.volume = volume;
+      this.reachSe.volume = volume;
+      this.clearSe.forEach(se => se.volume = volume);
     },
   }
 }
@@ -451,10 +439,5 @@ export default {
 <style scoped>
 canvas {
   background-color: pink;
-}
-.volume {
-  display: flex;
-  margin-top: 30px;
-  margin-left: 30px;
 }
 </style>
