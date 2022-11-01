@@ -3,9 +3,6 @@
     <canvas ref="brickBreakerCanvas" v-bind:width="canvasWidth" height="540">
     </canvas>
   </div>
-  <div class="volumeSlider">
-    <VolumeSlider v-bind:initialVolume="0.3" @vlomeChanged="onVolumeChanged"/>
-  </div>
   <div>
     <p>Enterキーを押すとスタートするのじゃ！</p>
     <p>左右のカーソルキーで操作するのじゃ！</p>
@@ -13,13 +10,11 @@
 </template>
 
 <script>
-import VolumeSlider from "./VolumeSlider.vue"
 
 export default {
   name: 'BrickBreaker',
 
   components: {
-    VolumeSlider
   },
 
   data () {
@@ -153,6 +148,16 @@ export default {
   },
 
   mounted() {
+    let storageVolume = localStorage.getItem("volumeValue");
+    if (storageVolume === null) {
+      storageVolume = 0.3;
+    }
+    this.breakSe.forEach(se => se.volume = storageVolume);
+    this.gameOverSe.volume = storageVolume;
+    this.ikkitsuukanSe.volume = storageVolume;
+    this.reachSe.volume = storageVolume;
+    this.clearSe.forEach(se => se.volume = storageVolume);
+
     this.bgImage.src = require('@/assets/images/background.png');
     this.bgImage.onload = function () {
       this.loaded = true;
@@ -177,6 +182,7 @@ export default {
     document.addEventListener('keyup', this.onKeyUp);
 
     let row = [this.nineGates, this.bigDragons, this.allGreens, this.thirteenOrphans, this.threeColorRuns];
+    const _this = this;
     for (let r = 0; r < this.brickRowCount; r++) {
       this.bricks[r] = [];
       for (let c = 0; c < this.brickColumnCount; c++) {
@@ -184,17 +190,18 @@ export default {
         this.bricks[r][c].image.src = (row[r][c]);
         this.bricks[r][c].image.onload = function () {
           this.loaded = true;
+
+          _this.brickWidth = _this.bricks[0][0].image.width;
+          _this.brickHeight = _this.bricks[0][0].image.height;
+
+          _this.canvasWidth = _this.bricks[0][0].image.width * _this.brickColumnCount + 60;
+
+          _this.x = _this.canvasWidth / 2;
+          _this.y = _this.canvas.height - 30;
+          _this.paddleX = (_this.canvasWidth - _this.tenbouImage.width) / 2;
         }
       }
     }
-    this.brickWidth = this.bricks[0][0].image.width;
-    this.brickHeight = this.bricks[0][0].image.height;
-
-    this.canvasWidth = this.bricks[0][0].image.width * this.brickColumnCount + 60;
-
-    this.x = this.canvasWidth / 2;
-    this.y = this.canvas.height - 30;
-    this.paddleX = (this.canvasWidth - this.tenbouImage.width) / 2;
 
     this.interval = setInterval(this.draw, 10);
   },
@@ -426,14 +433,6 @@ export default {
       } else if (e.key === "Left" || e.key === "ArrowLeft") {
         this.leftPressed = false;
       }
-    },
-
-    onVolumeChanged: function (volume) {
-      this.breakSe.forEach(se => se.volume = volume);
-      this.gameOverSe.volume = volume;
-      this.ikkitsuukanSe.volume = volume;
-      this.reachSe.volume = volume;
-      this.clearSe.forEach(se => se.volume = volume);
     },
   }
 }
