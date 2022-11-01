@@ -4,47 +4,55 @@
       <img src="@/assets/images/title.png"/>
     </div>
     <div class="start">
-      <img src="@/assets/images/i-so-kun.png" width="50" height="50" v-bind:class="[startSelected ? 'active' : 'nonactive']"/>
-      <img src="@/assets/images/start.png"/>
-      <!-- <p>スタート</p> -->
-      <!-- <p>Press Enter Noja!</p> -->
+      <img src="@/assets/images/i-so-kun.png" width="50" height="50" v-bind:class="[isStartMouseOver ? 'active' : 'nonactive']"/>
+      <img src="@/assets/images/start.png" v-on:mouseover="onStartMouseOver" v-on:mouseleave="onStartMouseLeave" v-on:click="onStartClick"/>
     </div>
     <div class="information">
-      <img src="@/assets/images/i-so-kun.png" width="50" height="50" v-bind:class="[infoSelected ? 'active' : 'nonactive']"/>
-      <img src="@/assets/images/information.png"/>
-      <!-- <p>インフォメーション</p> -->
+      <img src="@/assets/images/i-so-kun.png" width="50" height="50" v-bind:class="[isInfoMouseOver ? 'active' : 'nonactive']"/>
+      <img src="@/assets/images/information.png" v-on:mouseover="onInfoMouseOver" v-on:mouseleave="onInfoMouseLeave" v-on:click="onInfoClick"/>
     </div>
-    <p>上下カーソルキーとEnterキーで選択なのじゃ！</p>
   </div>
 </template>
 
 <script>
+import router from '../router/index'
+
 export default {
   name: 'StartMenu',
 
   data () {
     return {
-      startSelected: true,
-      infoSelected: false,
+      startSe: new Audio(require('@/assets/sounds/SE_START.wav')),
+      isStartMouseOver: false,
+      isInfoMouseOver: false,
     }
   },
 
   mounted() {
-    document.addEventListener('keydown', this.onKeyDown);
+    this.startSe.onended = function () {
+      router.push("/bb");
+    }
   },
 
   methods: {
-    onKeyDown: function (e) {
-      if (e.key === "Up" || e.key === "ArrowUp") {
-        this.startSelected = !this.startSelected;
-        this.infoSelected = !this.infoSelected;
-      } else if (e.key === "Down" || e.key === "ArrowDown") {
-        this.startSelected = !this.startSelected;
-        this.infoSelected = !this.infoSelected;
-      } else if (e.key === "Enter") {
-        // this.playing = true;
-      }
+    onStartMouseOver: function () {
+      this.isStartMouseOver = true;
     },
+    onStartMouseLeave: function () {
+      this.isStartMouseOver = false;
+    },
+    onInfoMouseOver: function () {
+      this.isInfoMouseOver = true;
+    },
+    onInfoMouseLeave: function () {
+      this.isInfoMouseOver = false;
+    },
+    onInfoClick: function () {
+      console.log("onclick");
+    },
+    onStartClick: function () {
+      this.startSe.play();
+    }
   },
 }
 </script>
@@ -54,9 +62,6 @@ export default {
 img {
   width: 30;
   height: 30;
-}
-p {
-  color: black;
 }
 .active {
   visibility: visible;

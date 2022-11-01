@@ -4,7 +4,7 @@
     </canvas>
   </div>
   <div class="volumeSlider">
-    <VolumeSlider initialVolume="0.3" @vlomeChanged="onVolumeChanged"/>
+    <VolumeSlider v-bind:initialVolume="0.3" @vlomeChanged="onVolumeChanged"/>
   </div>
   <div>
     <p>Enterキーを押すとスタートするのじゃ！</p>
@@ -199,13 +199,17 @@ export default {
     this.interval = setInterval(this.draw, 10);
   },
 
+  unmounted() {
+    clearInterval(this.interval);
+  },
+
   computed: {
     canvas () {
       return this.$refs["brickBreakerCanvas"];
     },
 
     ctx () {
-      return this.canvas.getContext("2d");
+      return this.canvas.getContext("2d", { willReadFrequently: true });
     },
   },
 
