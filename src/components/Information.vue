@@ -10,6 +10,8 @@
   <a href="https://mj-king.net/sozai/">麻雀王国</a>
   <p>音声</p>
   <a href="https://senba-kurono.booth.pm/items/1428401">千羽黒乃 BOOTH</a>
+  <h3>ソースコード</h3>
+  <a href="https://github.com/BishamonBrother/senba_brick_breaker">GitHub</a>
 </template>
 
 <script>
