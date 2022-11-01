@@ -65,7 +65,7 @@ export default {
       this.isSettingMouseOver = false;
     },
     onInfoClick: function () {
-      console.log("onclick");
+      router.push("/information");
     },
     onStartClick: function () {
       this.startSe.play();

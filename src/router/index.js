@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import BrickBreaker from '@/components/BrickBreaker.vue'
 import StartMenu from '@/components/StartMenu.vue'
 import Setting from '@/components/Setting.vue'
+import Information from '@/components/Information.vue'
 
 const routes = [
   {
@@ -18,6 +19,11 @@ const routes = [
     path: '/setting',
     name: 'setting',
     component: Setting
+  },
+  {
+    path: '/information',
+    name: 'information',
+    component: Information
   }
 ]
 
